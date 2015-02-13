@@ -36,6 +36,7 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 
 /**
@@ -53,6 +54,7 @@ public class ForegroundService extends Service {
 
     // Used to keep the app alive
     TimerTask keepAliveTask;
+    PowerManager.WakeLock wakelock;
 
     /**
      * Allow clients to call on to the service.
@@ -92,6 +94,9 @@ public class ForegroundService extends Service {
         }
 
         BackgroundMode.deleteUpdateSettings();
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BackgroundMode");
+        wakelock.acquire();
 
         keepAliveTask = new TimerTask() {
             @Override
@@ -113,6 +118,7 @@ public class ForegroundService extends Service {
      * Stop background mode.
      */
     private void sleepWell() {
+        wakelock.release();
         stopForeground(true);
         keepAliveTask.cancel();
     }
